@@ -70,16 +70,18 @@ install.packages("randomForest")
 library(randomForest)
 ###################################################################
 #model doesnt work! why???
-model.rf <- randomForest(Revenue ~ ., data = shopping.train, importance = TRUE)
+model.rf <- randomForest(Revenue ~ ., data = shopping.train, importance = TRUE, na.action=na.exclude)
+#fix
+library(nlme)
 
 #when it works check precision and recall
 #make a prediction on the test set
-prediction <- predict(model.dt, shopping.test)
+prediction.rf <- predict(model.rf, shopping.test)
 #build actual column
 actual <-shopping.test$Revenue
 
 #build the confusion matrix
-cf <- table(actual,prediction >0.5)
+cf <- table(actual,prediction.rf >0.5)
 precision <- cf['TRUE', 'TRUE']/(cf['TRUE', 'TRUE']+cf['TRUE', 'FALSE'])
 recall <- cf['TRUE', 'TRUE']/(cf['TRUE', 'TRUE']+cf['FALSE', 'TRUE'])
 ###################################################################
@@ -91,11 +93,22 @@ library(pROC)
 #create ROC curve for the tree prediction
 rocCurveDC <- roc(actual, prediction, direction = ">", levels = c("TRUE","FALSE"))
 #create ROC curve for the random forest tree
-rocCurveDC <- roc(actual, prediction.rf, direction = ">", levels = c("TRUE","FALSE"))
+rocCurveRF <- roc(actual, prediction.rf, direction = ">", levels = c("TRUE","FALSE"))
 
 #plot the chart
 plot(rocCurveDC, col = 'red', main = "ROC Chart")
 par(new = TRUE)
 plot(rocCurveRF, col = 'blue', main = "ROC Chart")
+
+#calculate accuracy by the area under the graph
+auc(rocCurveDC)
+auc(rocCurveRF)
+
+
+
+
+
+
+
 
 
